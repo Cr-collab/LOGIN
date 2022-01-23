@@ -6,20 +6,23 @@ export default function Home() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
+  const { signIn , isAuthenticated } = useContext(AuthContext)
+
   async function handleSubmit(event: FormEvent) {
 
-    const { signIn , isAuthenticated } = useContext(AuthContext)
     event.preventDefault()
+    
+
     const data = {
       email,
       password
     }
 
-    await signIn(data)
+     signIn(data)
   }
   return (
     <div className={styles.container}>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={(event) =>handleSubmit(event)}>
         <p>email :</p>
         <input
           type="email"
