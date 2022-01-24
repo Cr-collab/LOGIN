@@ -75,7 +75,7 @@ export function AuthProvider({children}: AuthProviderProps ){
       })
 
 
-      api.defaults.headers['Authorization'] =  `Bearer ${token}`
+      api.defaults.headers['Authorization'] = `Bearer ${token}`
 
        router.push('/dashboard')
 
