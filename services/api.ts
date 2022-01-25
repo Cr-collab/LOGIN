@@ -1,5 +1,6 @@
 import axios ,{AxiosError} from "axios";
-import { parseCookies, setCookie } from "nookies";
+import {Router, useRouter } from "next/router";
+import { destroyCookie, parseCookies, setCookie } from "nookies";
  
  
 let cookies = parseCookies()
@@ -12,7 +13,8 @@ export const api = axios.create({
       Authorization: `Bearer ${cookies['nextauth.token']}`
    }
 })
- 
+
+
 api.interceptors.response.use(response =>{
    return response
 }, (error: AxiosError) =>{
@@ -76,7 +78,13 @@ api.interceptors.response.use(response =>{
              })
          })
      }else {
- 
+     
+         destroyCookie(undefined, 'nextauth.token')
+         destroyCookie(undefined, 'nextauth.refreshToken')
+       
+       const   router =  useRouter()
+        
+       router.push('/')
      }
   }
 })
