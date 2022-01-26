@@ -1,13 +1,19 @@
 import axios ,{AxiosError} from "axios";
-import {Router, useRouter } from "next/router";
 import { destroyCookie, parseCookies, setCookie } from "nookies";
+import { signOut } from "../contexts/AuthContext";
  
  
-let cookies = parseCookies()
 let isRefreshing = false;
 let failedRequestQueue : any[] = []
- 
-export const api = axios.create({
+
+
+export function setupAPIClient(ctx = undefined) {
+
+   
+   let cookies = parseCookies(ctx)
+
+
+ const api = axios.create({
    baseURL: 'http://localhost:3333',
    headers:{
       Authorization: `Bearer ${cookies['nextauth.token']}`
@@ -18,28 +24,44 @@ export const api = axios.create({
 api.interceptors.response.use(response =>{
    return response
 }, (error: AxiosError) =>{
+
   if(error.response?.status === 401 ){
-     if(error.response?.data?.code === "token.expired"){
-         cookies = parseCookies();
+     if(error.response?.data.code === "token.expired"){
+         cookies = parseCookies(ctx);
  
          
  
-         const {'nextauth.refreshToken' : refreshToken } = parseCookies()
+         const {'nextauth.refreshToken' : refreshToken } = cookies
          const originalConfig = error.config
  
  
          if(!isRefreshing){
             isRefreshing = true
+
+            console.log(`
+            Refresh 
+            Refresh 
+            Refresh 
+            Refresh 
+            Refresh 
+            Refresh 
+            Refresh 
+            Refresh 
+            Refresh 
+            Refresh 
+            Refresh 
+            `)
             api.post('/refresh', {
                refreshToken
             }).then(response => {
-               const {token} =  response.data
+               
+               const {token} =  response?.data
    
-               setCookie(undefined, 'nextauth.token', token,{
+               setCookie(ctx, 'nextauth.token', token,{
                   maxAge: 60 * 60 * 24 * 30, // 30 days
                   path: '/'
                 })
-                setCookie(undefined, 'nextauth.refreshToken', response.data.refreshToken,{
+                setCookie(ctx, 'nextauth.refreshToken', response.data.refreshToken,{
                   maxAge: 60 * 60 * 24 * 30, // 30 days
                   path: '/'
                 })
@@ -53,12 +75,18 @@ api.interceptors.response.use(response =>{
                 failedRequestQueue = []
                
             }).catch(err => {
-               
+
+
                failedRequestQueue.forEach(request =>{
                   request.onFailure(err)
                })
- 
                failedRequestQueue = []
+
+               if(process.browser){
+                  signOut()
+                  
+               }
+               
  
             } ).finally(()=>{
                isRefreshing = false
@@ -79,12 +107,16 @@ api.interceptors.response.use(response =>{
          })
      }else {
      
-         destroyCookie(undefined, 'nextauth.token')
-         destroyCookie(undefined, 'nextauth.refreshToken')
-       
-       const   router =  useRouter()
         
-       router.push('/')
+       
+         if(process.browser){
+           signOut()
+            
+         }
      }
   }
 })
+
+return api
+
+}
