@@ -7,7 +7,7 @@ import { api } from "../services/apiClient"
 import { withSSRAuth } from "../utils/withSSRAuth"
 
 export default function Dasboard(){
-  const {user} = useContext(AuthContext)
+  const {user, signOut} = useContext(AuthContext)
 
   const userCanSeeMetrics = useCan({
     permissions: ['metrics.list']
@@ -22,6 +22,10 @@ export default function Dasboard(){
   return (
     <>
      <h1> Esta logado :{user?.email} </h1>
+
+     <button onClick={() =>signOut()}>
+       Sign Out
+     </button>
 
      {
        userCanSeeMetrics && <div> Métricas </div>

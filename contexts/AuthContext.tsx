@@ -1,3 +1,4 @@
+import Router from "next/dist/server/router";
 import { useRouter } from "next/router";
 import { destroyCookie, parseCookies, setCookie } from "nookies";
 import { createContext, ReactNode, useEffect, useState } from "react";
@@ -13,20 +14,25 @@ type SignInCredentials = {
   email: string
   password: string
 }
+let authChannel : BroadcastChannel
 
 export function signOut(){
-  destroyCookie(undefined, 'nextauth.token')
-  destroyCookie(undefined, 'nextauth.refreshToken')
+  destroyCookie(undefined, 'nextauth.token');
+  destroyCookie(undefined, 'nextauth.refreshToken');
 
-     useRouter().push('/')
- 
+        window.location.href ='http://localhost:3000/';
+
+        authChannel.postMessage('signOut');
 }
 
 type AuthContextData = {
-    signIn(credentials : SignInCredentials): Promise<void>;
+    signIn: (credentials : SignInCredentials) => Promise<void>;
     isAuthenticated: boolean;
     user: User;
+    signOut: () => void; 
 };
+
+
 
 type AuthProviderProps = {
   children: ReactNode
@@ -62,6 +68,8 @@ export function AuthProvider({children}: AuthProviderProps ){
 
   },[])
 
+
+
   async function signIn({email, password} : SignInCredentials){
      try{
       const response =  await api.post('sessions', {
@@ -90,14 +98,34 @@ export function AuthProvider({children}: AuthProviderProps ){
       api.defaults.headers['Authorization'] = `Bearer ${token}`
 
        router.push('/dashboard')
+       
 
      }catch(err){
        console.log(err);
      }
   }
 
+
+  
+  useEffect(()=>{
+    authChannel = new BroadcastChannel("auth")
+  
+      authChannel.onmessage = (message) => {
+        switch(message.data){
+          case 'signOut':
+             signOut();  
+          break
+          case 'signIn':
+            router.push('/dashboard');  
+         break
+          default:
+            break;
+        }
+      }
+    })
+
   return (
-    <AuthContext.Provider value={{signIn, isAuthenticated, user}}>
+    <AuthContext.Provider value={{signIn, isAuthenticated, user, signOut}}>
       {children}
     </AuthContext.Provider>
   )
