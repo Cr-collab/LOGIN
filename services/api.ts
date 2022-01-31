@@ -38,21 +38,8 @@ api.interceptors.response.use(response =>{
  
          if(!isRefreshing){
             isRefreshing = true
-            console.log(`
-            Refresh 
-            Refresh 
-            Refresh 
-            Refresh 
-            Refresh 
-            Refresh 
-            Refresh 
-            Refresh 
-            Refresh 
-            Refresh 
-            Refresh 
-            `)
-
-
+           
+         
             api.post('/refresh', {
                refreshToken
             }).then(response => {
